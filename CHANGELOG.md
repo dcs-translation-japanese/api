@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.5](https://github.com/dcs-translation-japanese/api/compare/v1.5.4...v1.5.5) (2026-10-28)
+
+
+### Bug Fixes
+
+* **deps:** bump hono from 4.13.13 to 4.13.14 in the hono-and-openapi group ([305209e](https://github.com/dcs-translation-japanese/api/commit/305209e5276d99565b8bc9ad092c368783788bb4))
+
 ## [1.5.4](https://github.com/5kdn/DCS-Translation-Japanese-Cloudflare-Worker/compare/v1.5.3...v1.5.4) (2026-10-23)
 
 
