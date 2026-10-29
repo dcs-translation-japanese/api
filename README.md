@@ -25,23 +25,11 @@ translationsのTransfer後、同じGitHub App（ID `2459818`）をOrgへイン�
 シミュレーション専用に使用できます。公開workflowはこの値を拒否します。
 実アクセスの確認には実測したIDが必要です。
 
-新旧CORS originの先行公開、投稿・PR停止、App権限、保存済みPATの確認を済ませてから切り替えます。
+新旧CORS originの先行公開、通常PRマージの停止、App権限、保存済みPATの確認を済ませてから切り替えます。
 手動公開は承認済みcommit SHAを40桁で入力し、実行対象refもそのSHAを指すものに指定します。
 workflowはcheckout SHAの一致を検証します。ReleaseイベントではイベントSHAと照合します。
 Worker名・公開URL・既存D1の2 binding・App ID・秘密鍵を維持し、本番DBの初期化は行いません。
-失敗時は投稿・PR停止を維持し、新owner/repo・Org installation・新旧CORSを保ったまま修復します。
-
-### 投稿停止の操作
-
-段階2の開始前に、投稿停止PRを旧参照先のまま取り込みます。
-Actions変数 `MIGRATION_READ_ONLY=true` で承認済みSHAを公開し、
-`/create-pr` と `/issue/create` のPOSTが503になることを確認してからTransferします。
-読み取り、一覧POST、OIDCのメタデータ送信は継続します。
-
-Org参照先への切り替え時もtrueを維持します。
-読取りとOIDC照合設定の確認後、承認済みの検証用Issue/PR投稿を行う時間だけfalseで公開します。
-失敗した場合はtrueへ戻し、2-Cの連携確認に合格してから通常投稿を再開します。
-変更する変数・実行run・承認SHAを毎回記録してください。
+失敗時は通常PRマージを保留し、新owner/repo・Org installation・新旧CORSを保ったまま修復します。
 
 ## 実行と開発手順
 

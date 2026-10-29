@@ -49,15 +49,6 @@ app.use(
   }),
 );
 
-// Keep reads and OIDC metadata delivery available while new submissions are stopped.
-app.use('*', async (c, next) => {
-  const path = c.req.path.replace(/\/+$/, '');
-  if (c.env.MIGRATION_READ_ONLY === 'true' && c.req.method === 'POST' && (path === '/create-pr' || path === '/issue/create')) {
-    return c.json({ success: false, message: 'Submissions are temporarily unavailable during migration.' }, 503);
-  }
-  await next();
-});
-
 // mount routes
 app.route('/', createPrRoute);
 app.route('/', docsRoute);
