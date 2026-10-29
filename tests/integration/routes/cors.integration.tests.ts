@@ -10,10 +10,7 @@ describe('Pages origin CORS', () => {
   it.each(['https://5kdn.github.io', 'https://dcs-translation-japanese.github.io'])(
     'allows %s for reads and preflight',
     async (origin) => {
-      const response = await app.fetch(
-        new Request('http://localhost/health', { headers: { Origin: origin } }),
-        env,
-      );
+      const response = await app.fetch(new Request('http://localhost/health', { headers: { Origin: origin } }), env);
       expect(response.status).toBe(200);
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin);
 
@@ -40,10 +37,7 @@ describe('Pages origin CORS', () => {
     'https://dcs-translation-japanese.github.io/WebUI/',
     'https://untrusted.example',
   ])('does not allow %s', async (origin) => {
-    const response = await app.fetch(
-      new Request('http://localhost/health', { headers: { Origin: origin } }),
-      env,
-    );
+    const response = await app.fetch(new Request('http://localhost/health', { headers: { Origin: origin } }), env);
     expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
   });
 });
