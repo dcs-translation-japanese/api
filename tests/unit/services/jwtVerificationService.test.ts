@@ -90,6 +90,38 @@ describe('JwtVerificationService.verifyGithubActionsIdToken', () => {
     expect(prepare).not.toHaveBeenCalled();
   });
 
+  it('ID付きsubjectが完全一致する場合は受け入れる', async () => {
+    const { db } = makeDb();
+    const service = new JwtVerificationService(db);
+    const sub = 'repo:owner@123/repo@456:pull_request';
+    jwtVerifyMock.mockResolvedValue({
+      payload: { ...basePayload, sub },
+      protectedHeader: { alg: 'RS256' },
+    } as Awaited<ReturnType<typeof jwtVerify>>);
+
+    const result = await service.verifyGithubActionsIdToken('token', 'tree-metadata', { sub });
+    expect(result.payload.sub).toBe(sub);
+  });
+
+  it.each([
+    'repo:owner/repo:pull_request',
+    'repo:owner@999/repo@456:pull_request',
+    'repo:owner@123/repo@999:pull_request',
+    'repo:owner@123/repo@456:ref:refs/heads/main',
+  ])('異なるsubjectを拒否しjtiを登録しない: %s', async (sub: string): Promise<void> => {
+    const { db, prepare } = makeDb();
+    const service = new JwtVerificationService(db);
+    jwtVerifyMock.mockResolvedValue({
+      payload: { ...basePayload, sub },
+      protectedHeader: { alg: 'RS256' },
+    } as Awaited<ReturnType<typeof jwtVerify>>);
+
+    await expect(
+      service.verifyGithubActionsIdToken('token', 'tree-metadata', { sub: 'repo:owner@123/repo@456:pull_request' }),
+    ).rejects.toBeInstanceOf(ClaimValidationError);
+    expect(prepare).not.toHaveBeenCalled();
+  });
+
   it('jtiが無い場合はClaimValidationErrorを投げる', async () => {
     const { db } = makeDb();
     const service = new JwtVerificationService(db);

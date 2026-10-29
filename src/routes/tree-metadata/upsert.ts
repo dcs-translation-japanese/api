@@ -131,7 +131,7 @@ export const registerTreeMetadataUpsertRoutes = (app: OpenAPIHono<AppEnv>) => {
       const db = getRequiredEnvD1Database('JWT_REPLAY_DB', c.env.JWT_REPLAY_DB);
 
       const expectedClaims = {
-        sub: `repo:${owner}/${repo}:pull_request`,
+        sub: getRequiredEnvString('TREE_METADATA_OIDC_SUBJECT', c.env.TREE_METADATA_OIDC_SUBJECT),
         repository: `${owner}/${repo}`,
         repository_owner: owner,
         ref,
