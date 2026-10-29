@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
     env: {
       NODE_ENV: bindings.text('production'),
       MIGRATION_READ_ONLY: bindings.text(migrationReadOnly),
-      AllowOrigins: bindings.text('https://5kdn.github.io'),
+      AllowOrigins: bindings.text('https://5kdn.github.io,https://dcs-translation-japanese.github.io'),
       TARGET_GH_APP_ID: bindings.text('2459818'),
       TARGET_GH_INSTALLATION_ID: bindings.text(installationId),
       TARGET_GH_OWNER: bindings.text('dcs-translation-japanese'),

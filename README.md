@@ -31,6 +31,18 @@ workflowはcheckout SHAの一致を検証します。Releaseイベントでは�
 Worker名・公開URL・既存D1の2 binding・App ID・秘密鍵を維持し、本番DBの初期化は行いません。
 失敗時は投稿・PR停止を維持し、新owner/repo・Org installation・新旧CORSを保ったまま修復します。
 
+### 投稿停止の操作
+
+段階2の開始前に、投稿停止PRを旧参照先のまま取り込みます。
+Actions変数 `MIGRATION_READ_ONLY=true` で承認済みSHAを公開し、
+`/create-pr` と `/issue/create` のPOSTが503になることを確認してからTransferします。
+読み取り、一覧POST、OIDCのメタデータ送信は継続します。
+
+Org参照先への切り替え時もtrueを維持します。
+読取り・OIDCの成功後、承認済みの検証用Issue/PR投稿を行う時間だけfalseで公開します。
+失敗した場合はtrueへ戻し、2-Cの連携確認に合格してから通常投稿を再開します。
+変更する変数・実行run・承認SHAを毎回記録してください。
+
 ## 実行と開発手順
 
 - 依存関係の導入: `pnpm install`
