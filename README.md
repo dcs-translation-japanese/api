@@ -18,16 +18,11 @@
 
 translationsのTransfer後、同じGitHub App（ID `2459818`）をOrgへインストールし、
 対象はtranslationsだけに限定します。Contents・Issues・Pull requestsのread/writeを確認してください。
-実測したOrg installation IDをActions変数 `TARGET_GH_INSTALLATION_ID` に設定します。
-設定が空・不正・旧個人installationの場合は設定読み込みまたは公開処理を失敗させます。
+Org installation IDは移管後に実測し、既存の `cloudflare.config.ts` の値を置き換えてから取り込みます。
+このPRの準備時点では移管前のIDが残っています。実測値への更新とCI確認を終えるまで取り込みません。
 
-ローカルの型生成・テスト・dry-runでは、環境変数 `TARGET_GH_INSTALLATION_ID=1` を
-シミュレーション専用に使用できます。公開workflowはこの値を拒否します。
-実アクセスの確認には実測したIDが必要です。
-
-新旧CORS originの先行公開、通常PRマージの停止、App権限、保存済みPATの確認を済ませてから切り替えます。
-手動公開は承認済みcommit SHAを40桁で入力し、実行対象refもそのSHAを指すものに指定します。
-workflowはcheckout SHAの一致を検証します。ReleaseイベントではイベントSHAと照合します。
+新旧CORS originの先行公開、通常PRマージの保留、App権限、保存済みPATの確認を済ませてから切り替えます。
+公開には既存のGitHub Actionsを使用し、対象コミットを実行記録で確認します。
 Worker名・公開URL・既存D1の2 binding・App ID・秘密鍵を維持し、本番DBの初期化は行いません。
 失敗時は通常PRマージを保留し、新owner/repo・Org installation・新旧CORSを保ったまま修復します。
 
@@ -56,12 +51,12 @@ cf と Cloudflare Vite プラグインは beta 版のため、動作確認済み
 `pnpm cf-typegen` は `.cloudflare/types/index.d.ts` を生成します。
 設定変更時は再生成し、この型定義もコミットしてください。
 
-本番への公開は承認済みSHAをGitHub Actionsで実行します。
+本番への公開は既存のGitHub Actionsで実行します。
 `CLOUDFLARE_ACCOUNT_ID`・`CLOUDFLARE_API_TOKEN`・`TARGET_GH_SECRET` は既存の
 リポジトリシークレットを使用します。Appの既存秘密鍵は同じWorker上で維持します。
 D1のID・Cron・Worker名は維持し、参照先owner/repoとinstallationだけを切り替えます。
-`Verify migration PAT (read only)` は保存済み `secrets.PAT` の読み取り確認用です。
-PATの対象・期限・Org承認・書き込み権限は設定と承認済みRelease Pleaseの実処理で別途確認します。
+PATの対象・期限・Org承認・Secretとの対応を設定で確認します。
+移管後は既存のRelease Pleaseの実行結果で権限を確認し、CLI認証の成功をPATの検証に代用しません。
 
 ## サードパーティライセンス
 
