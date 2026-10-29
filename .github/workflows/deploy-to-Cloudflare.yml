@@ -20,6 +20,7 @@ env:
   NODE_VERSION: "24.x"
   PNPM_VERSION: "10.33.0"
   TARGET_GH_INSTALLATION_ID: ${{ vars.TARGET_GH_INSTALLATION_ID }}
+  MIGRATION_READ_ONLY: ${{ vars.MIGRATION_READ_ONLY || 'false' }}
 
 jobs:
   Deploy:
