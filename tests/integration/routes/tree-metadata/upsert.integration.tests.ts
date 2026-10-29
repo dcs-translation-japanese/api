@@ -31,6 +31,7 @@ const createEnv = (): AppEnv['Bindings'] => ({
   TARGET_GH_OWNER: 'test-owner',
   TARGET_GH_REPO: 'test-repo',
   TARGET_GH_DEFAULT_BRANCH: 'main',
+  TREE_METADATA_OIDC_SUBJECT: 'repo:test-owner@123/test-repo@456:pull_request',
   DOWNLOAD_FILES_RATE_LIMIT: '30',
   TARGET_GH_APP_ID: '123456',
   TARGET_GH_APP_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nxxxxxxxxxxxxxxxxxxxxxxxxx\n-----END PRIVATE KEY-----',
@@ -91,7 +92,7 @@ describe('POST /tree-metadata/upsert', () => {
     expect(token).toBe('test.jwt.token');
     expect(audience).toBe('tree-metadata');
     expect(expectedClaims).toEqual({
-      sub: `repo:${env.TARGET_GH_OWNER}/${env.TARGET_GH_REPO}:pull_request`,
+      sub: 'repo:test-owner@123/test-repo@456:pull_request',
       repository: `${env.TARGET_GH_OWNER}/${env.TARGET_GH_REPO}`,
       repository_owner: env.TARGET_GH_OWNER,
       ref: `refs/heads/${env.TARGET_GH_DEFAULT_BRANCH}`,
@@ -190,6 +191,24 @@ describe('POST /tree-metadata/upsert', () => {
       data: null,
       message: '権限がありません。',
     });
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('OIDC subjectが未設定なら検証・更新せず500を返す', async () => {
+    const env = createEnv();
+    env.TREE_METADATA_OIDC_SUBJECT = undefined;
+
+    const response = await app.fetch(
+      new Request('http://localhost/tree-metadata/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test.jwt.token' },
+        body: JSON.stringify([]),
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(500);
+    expect(mockVerifyGithubActionsIdToken).not.toHaveBeenCalled();
     expect(mockUpsert).not.toHaveBeenCalled();
   });
 

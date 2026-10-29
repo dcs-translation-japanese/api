@@ -9,6 +9,7 @@ export type Bindings = {
   TARGET_GH_DEFAULT_BRANCH: string;
   DOWNLOAD_FILES_RATE_LIMIT: string | undefined;
   TREE_METADATA_OIDC_AUDIENCE?: string;
+  TREE_METADATA_OIDC_SUBJECT?: string;
   TREE_METADATA_DB?: D1Database;
   JWT_REPLAY_DB?: D1Database;
 };

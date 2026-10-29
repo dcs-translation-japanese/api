@@ -44,6 +44,14 @@ cf と Cloudflare Vite プラグインは beta 版のため、動作確認済み
 GitHub Actions は同名のリポジトリシークレットと `TARGET_GH_SECRET` を使用します。
 D1 の ID・Cron・環境変数は移行前の設定を維持しています。
 
+### メタデータ送信のOIDC subject
+
+`TREE_METADATA_OIDC_SUBJECT` は、translationsのOIDC設定と実claimで確認した
+`repo:dcs-translation-japanese@346855332/translations@1098927315:pull_request`
+を指定します。GitHubのimmutable subject形式に従い、ownerとrepositoryのIDも完全一致で照合します。
+移管・改名後はこの値を再確認してください。未設定時は送信を拒否します。
+issuer・`tree-metadata` audience・repository・owner・master・workflowの照合と、jtiの再利用拒否も維持します。
+
 ## サードパーティライセンス
 
 本プロジェクトには、外部のオープンソースソフトウェアが含まれています。

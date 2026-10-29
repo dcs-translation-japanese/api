@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => ({
       TARGET_GH_OWNER: bindings.text('dcs-translation-japanese'),
       TARGET_GH_REPO: bindings.text('translations'),
       TARGET_GH_DEFAULT_BRANCH: bindings.text('master'),
+      TREE_METADATA_OIDC_SUBJECT: bindings.text('repo:dcs-translation-japanese@346855332/translations@1098927315:pull_request'),
       DOWNLOAD_FILES_RATE_LIMIT: bindings.text('500'),
       TREE_METADATA_DB: bindings.d1({
         name: 'tree-metadata-db',
