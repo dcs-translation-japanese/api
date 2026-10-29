@@ -10,10 +10,16 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: '承認済み公開commit SHA（40桁）'
+        required: true
+        type: string
 
 env:
   NODE_VERSION: "24.x"
   PNPM_VERSION: "10.33.0"
+  TARGET_GH_INSTALLATION_ID: ${{ vars.TARGET_GH_INSTALLATION_ID }}
 
 jobs:
   Deploy:
@@ -29,6 +35,18 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 1
+
+      - name: Verify approved commit and Org installation
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          [[ "$TARGET_GH_INSTALLATION_ID" =~ ^[1-9][0-9]*$ ]]
+          test "$TARGET_GH_INSTALLATION_ID" != "99269804"
+          test "$TARGET_GH_INSTALLATION_ID" != "1"
+          printf 'Commit: %s\nOrg installation: %s\n' "$EXPECTED_SHA" "$TARGET_GH_INSTALLATION_ID" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: pnpm/action-setup@v6
         with:

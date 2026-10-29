@@ -11,6 +11,8 @@ permissions:
 env:
   NODE_VERSION: "24.x"
   PNPM_VERSION: "10.33.0"
+  # Local simulation only; deploy reads the verified repository variable instead.
+  TARGET_GH_INSTALLATION_ID: "1"
 
 on:
   pull_request:

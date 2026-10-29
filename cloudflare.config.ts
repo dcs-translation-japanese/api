@@ -1,5 +1,11 @@
 import { bindings, defineConfig, triggers } from 'cf/config';
 
+// Resolve the Org installation after Transfer; never deploy the personal installation.
+const installationId = process.env.TARGET_GH_INSTALLATION_ID;
+if (!installationId || !/^[1-9]\d*$/.test(installationId) || installationId === '99269804') {
+  throw new Error('Set TARGET_GH_INSTALLATION_ID to the verified Org installation ID.');
+}
+
 export default defineConfig(({ mode }) => ({
   worker: {
     name: 'dcs-translation-japanese-cloudflare-worker',
@@ -17,9 +23,9 @@ export default defineConfig(({ mode }) => ({
       NODE_ENV: bindings.text('production'),
       AllowOrigins: bindings.text('https://5kdn.github.io'),
       TARGET_GH_APP_ID: bindings.text('2459818'),
-      TARGET_GH_INSTALLATION_ID: bindings.text('99269804'),
-      TARGET_GH_OWNER: bindings.text('5kdn'),
-      TARGET_GH_REPO: bindings.text('DCS-Translation-Japanese'),
+      TARGET_GH_INSTALLATION_ID: bindings.text(installationId),
+      TARGET_GH_OWNER: bindings.text('dcs-translation-japanese'),
+      TARGET_GH_REPO: bindings.text('translations'),
       TARGET_GH_DEFAULT_BRANCH: bindings.text('master'),
       DOWNLOAD_FILES_RATE_LIMIT: bindings.text('500'),
       TREE_METADATA_DB: bindings.d1({
