@@ -1,6 +1,6 @@
 # DCS Translation Japanese Cloudflare Worker
 
-[DCS TranslationJapanese](https://github.com/5kdn/DCS-Translation-Japanese) リポジトリの内容に対する参照・操作を提供する API サーバー。
+[DCS TranslationJapanese](https://github.com/dcs-translation-japanese/translations) リポジトリの内容に対する参照・操作を提供する API サーバー。
 
 ## エンドポイント
 
