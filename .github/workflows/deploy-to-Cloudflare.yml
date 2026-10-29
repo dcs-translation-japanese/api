@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       expected_sha:
-        description: '承認済み公開commit SHA（40桁）'
+        description: "承認済み公開commit SHA（40桁）"
         required: true
         type: string
 
