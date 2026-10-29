@@ -39,7 +39,7 @@ Actions変数 `MIGRATION_READ_ONLY=true` で承認済みSHAを公開し、
 読み取り、一覧POST、OIDCのメタデータ送信は継続します。
 
 Org参照先への切り替え時もtrueを維持します。
-読取り・OIDCの成功後、承認済みの検証用Issue/PR投稿を行う時間だけfalseで公開します。
+読取りとOIDC照合設定の確認後、承認済みの検証用Issue/PR投稿を行う時間だけfalseで公開します。
 失敗した場合はtrueへ戻し、2-Cの連携確認に合格してから通常投稿を再開します。
 変更する変数・実行run・承認SHAを毎回記録してください。
 
