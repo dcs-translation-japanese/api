@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.6](https://github.com/dcs-translation-japanese/api/compare/v1.5.5...v1.5.6) (2026-10-29)
+
+
+### Bug Fixes
+
+* translationsのOrg参照先と検証済みinstallationの公開手順を準備する ([#145](https://github.com/dcs-translation-japanese/api/issues/145)) ([0abadf9](https://github.com/dcs-translation-japanese/api/commit/0abadf94bddba20dab8d1af7914acc3d4b62b2f1))
+* verify the immutable translations OIDC subject ([#150](https://github.com/dcs-translation-japanese/api/issues/150)) ([9b82d76](https://github.com/dcs-translation-japanese/api/commit/9b82d76f8cb859e8a2a42ed88bcd2d042973e827))
+* 移管期間中の新旧Pages originを許可する ([#144](https://github.com/dcs-translation-japanese/api/issues/144)) ([8c4b7c6](https://github.com/dcs-translation-japanese/api/commit/8c4b7c6fe9516fc6c3661366b94ead4a382c211e))
+
 ## [1.5.5](https://github.com/dcs-translation-japanese/api/compare/v1.5.4...v1.5.5) (2026-10-28)
 
 
