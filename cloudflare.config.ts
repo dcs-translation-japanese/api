@@ -1,5 +1,10 @@
 import { bindings, defineConfig, triggers } from 'cf/config';
 
+const migrationReadOnly = process.env.MIGRATION_READ_ONLY ?? 'false';
+if (migrationReadOnly !== 'true' && migrationReadOnly !== 'false') {
+  throw new Error('MIGRATION_READ_ONLY must be true or false.');
+}
+
 export default defineConfig(({ mode }) => ({
   worker: {
     name: 'dcs-translation-japanese-cloudflare-worker',
@@ -15,6 +20,7 @@ export default defineConfig(({ mode }) => ({
     ],
     env: {
       NODE_ENV: bindings.text('production'),
+      MIGRATION_READ_ONLY: bindings.text(migrationReadOnly),
       AllowOrigins: bindings.text('https://5kdn.github.io'),
       TARGET_GH_APP_ID: bindings.text('2459818'),
       TARGET_GH_INSTALLATION_ID: bindings.text('99269804'),
