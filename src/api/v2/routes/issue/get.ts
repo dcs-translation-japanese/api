@@ -12,6 +12,7 @@ import { githubIssueSchema, issueSchema, toIssue } from './schemas';
 /** 認証不要のIssue詳細操作のOpenAPI定義。 */
 export const getIssue = createRoute({
   operationId: 'getIssue',
+  tags: ['Issue'],
   method: 'get',
   path: '/issues/{number}',
   security: [],

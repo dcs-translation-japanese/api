@@ -11,6 +11,7 @@ export const healthSchema = z
 
 export const getHealth = createRoute({
   operationId: 'getHealth',
+  tags: ['Health'],
   method: 'get',
   path: '/health',
   security: [],

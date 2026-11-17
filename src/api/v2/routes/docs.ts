@@ -8,6 +8,7 @@ export const docsSchema = z.string().min(1);
 
 export const getDocs = createRoute({
   operationId: 'getDocs',
+  hide: true,
   method: 'get',
   path: '/docs',
   security: [],

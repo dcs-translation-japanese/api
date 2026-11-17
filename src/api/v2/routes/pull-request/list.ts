@@ -19,6 +19,7 @@ export const pullRequestPageSchema = z
 /** 認証不要のPR一覧操作のOpenAPI定義。 */
 export const listPullRequests = createRoute({
   operationId: 'listPullRequests',
+  tags: ['PR'],
   method: 'get',
   path: '/prs',
   security: [],

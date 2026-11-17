@@ -19,6 +19,7 @@ export const issuePageSchema = z
 /** 認証不要のIssue一覧操作のOpenAPI定義。 */
 export const listIssues = createRoute({
   operationId: 'listIssues',
+  tags: ['Issue'],
   method: 'get',
   path: '/issues',
   security: [],

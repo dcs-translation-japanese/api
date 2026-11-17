@@ -538,6 +538,85 @@
             }
           }
         ]
+      },
+      "post": {
+        "operationId": "queryFiles",
+        "tags": [
+          "files"
+        ],
+        "summary": "ファイル情報とダウンロードURLをJSON本文で一括取得する",
+        "security": [],
+        "description": "JSON本文のpathsに重複のない1〜10,000件を指定する。本文は最大5 MiB、UTF-8 JSON応答は最大8 MiB。GET /filesと同じパス検証・応答形式を使用し、全ファイルを同一コミットSHAに固定して指定順で返す。認証不要の読み取り専用操作。存在しないパスは404、本文超過は413、応答超過は422 SNAPSHOT_LIMIT_EXCEEDEDとし、分割・部分結果は返さない。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "paths"
+                ],
+                "properties": {
+                  "paths": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 10000,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096,
+                      "description": "DCSWorld/またはUserMissions/配下の相対パス（UTF-8で4096バイト以内）。"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ファイル情報とダウンロードURL。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueriedFiles"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "502": {
+            "$ref": "#/components/responses/Upstream"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "default": {
+            "$ref": "#/components/responses/Other"
+          }
+        }
       }
     },
     "/v2/tree-metadata": {
@@ -1506,6 +1585,33 @@
           "sha",
           "size",
           "updatedAt"
+        ]
+      },
+      "QueriedFiles": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commitSha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/File"
+            },
+            "minItems": 1,
+            "maxItems": 10000
+          }
+        },
+        "required": [
+          "commitSha",
+          "generatedAt",
+          "files"
         ]
       },
       "Files": {

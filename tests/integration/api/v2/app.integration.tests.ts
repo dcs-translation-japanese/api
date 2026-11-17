@@ -37,9 +37,37 @@ describe('v2 public contracts', () => {
     const body = await expectV2Contract(response, operation);
     if (operation === 'getOpenApi') {
       expect(body).toMatchObject({ openapi: '3.1.0', info: specification.info });
-      expect(Object.keys(openApiSchema.parse(body).paths).sort()).toEqual(Object.keys(specification.paths).sort());
+      expect(Object.keys(openApiSchema.parse(body).paths).sort()).toEqual(
+        Object.keys(specification.paths)
+          .filter((path) => path !== '/v2/docs' && path !== '/v2/openapi.json')
+          .sort(),
+      );
     }
     if (operation === 'getDocs') expect(body).toContain('/v2/openapi.json');
+  });
+
+  it('groups Swagger operations by resource in the requested order', async () => {
+    const document: unknown = await (await request('/v2/openapi.json')).json();
+    expect(document).toMatchObject({
+      tags: ['Health', 'Tree', 'Files', 'Issue', 'PR', 'Tree Metadata'].map((name) => ({ name })),
+    });
+    const tags: Record<string, string> = {
+      health: 'Health',
+      tree: 'Tree',
+      files: 'Files',
+      issues: 'Issue',
+      prs: 'PR',
+      'tree-metadata': 'Tree Metadata',
+    };
+    for (const route of Object.values(routes)) {
+      if (route.path === '/docs' || route.path === '/openapi.json') {
+        expect(document).not.toHaveProperty(['paths', `/v2${route.path}`]);
+        continue;
+      }
+      const resource = route.path.split('/')[1] ?? '';
+      const tag = tags[resource];
+      expect(document).toMatchObject({ paths: { [`/v2${route.path}`]: { [route.method]: { tags: [tag] } } } });
+    }
   });
 
   /** treeの取得完了条件・キャッシュ・件数とサイズ上限が、実際の公開仕様に含まれることを確認する。 */
@@ -66,6 +94,43 @@ describe('v2 public contracts', () => {
     });
   });
 
+  it('documents the public files query body, response limits and failures', async () => {
+    const document = openApiSchema.parse(await (await request('/v2/openapi.json')).json());
+    expect(document).toMatchObject({
+      paths: {
+        '/v2/files': {
+          post: {
+            operationId: 'queryFiles',
+            security: [],
+            description: expect.stringMatching(/10,000.*5 MiB.*8 MiB.*同一コミットSHA.*指定順.*404.*413.*422/),
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['paths'],
+                    properties: { paths: { minItems: 1, maxItems: 10000, uniqueItems: true } },
+                  },
+                },
+              },
+            },
+            responses: Object.fromEntries(
+              [200, 400, 404, 406, 413, 415, 422, 500, 502, 503].map((status) => [status, expect.anything()]),
+            ),
+          },
+        },
+      },
+      components: {
+        schemas: {
+          Files: { properties: { files: { maxItems: 100 } } },
+          QueriedFiles: { properties: { files: { minItems: 1, maxItems: 10000 } } },
+        },
+      },
+    });
+  });
+
   it.each(['/v2/health', '/v2/openapi.json', '/v2/docs'])('HEAD %s returns headers without a body', async (path) => {
     const response = await request(path, { method: 'HEAD' });
     expect(response.status).toBe(200);
@@ -76,6 +141,7 @@ describe('v2 public contracts', () => {
   it('keeps all documented operations, success statuses, media types and security declarations', async () => {
     const document: unknown = await (await request('/v2/openapi.json')).json();
     for (const [path, item] of Object.entries(specification.paths)) {
+      if (path === '/v2/docs' || path === '/v2/openapi.json') continue;
       for (const [method, operation] of Object.entries(item)) {
         if (!operation || typeof operation !== 'object' || !('operationId' in operation)) continue;
         const responses = Object.fromEntries(
