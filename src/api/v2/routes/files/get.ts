@@ -4,19 +4,9 @@
  */
 import { createRoute, type RouteHandler, z } from '@hono/zod-openapi';
 import type { AppEnv } from '@/types/env';
-import { dateTimeSchema, failure, jsonMiddleware, readFailures, shaSchema } from '../common';
-import { getSnapshot } from '../tree/get';
-import { filePathsSchema, fileSchema } from './schemas';
-
-/** 要求順のファイル情報と、取得時のコミット・生成日時を持つ公開応答。 */
-export const filesSchema = z
-
-  .strictObject({
-    commitSha: shaSchema,
-    generatedAt: dateTimeSchema,
-    files: z.array(fileSchema).min(1).max(100),
-  })
-  .openapi('Files');
+import { getSnapshot } from '../../snapshot';
+import { failure, jsonMiddleware, readFailures } from '../common';
+import { filePathsSchema, filesSchema } from './schemas';
 
 /** 重複のない1〜100件のpathを、繰り返しクエリとして受け付ける。 */
 export const filesQuerySchema = z.strictObject({
@@ -33,7 +23,13 @@ export const getFiles = createRoute({
   tags: ['Files'],
   method: 'get',
   path: '/files',
-
+  description:
+    '指定したファイル情報とコミット固定URLを指定順で返す。' +
+    'GET /v2/tree・POST /v2/filesと、同じデータセンター・origin・リポジトリのキャッシュを共有する。' +
+    '最新コミットは60秒、SHA固定のGitHubツリーは1年間キャッシュする（保持は保証しない）。' +
+    'D1の登録済み更新日時は毎回取得し、応答全体はCache-Control: no-storeとする。' +
+    'masterの変更反映は最大約60秒遅れ、別リクエスト間の同一コミットは保証しない。' +
+    '新規ファイルは反映まで404になる場合があり、master更新からD1反映までの数秒は内容と更新日時がずれる場合がある。',
   security: [],
   middleware: jsonMiddleware,
   request: { query: filesQuerySchema },
@@ -50,5 +46,8 @@ export const getFiles = createRoute({
  * @returns コミット固定のファイル情報を含むJSON応答。
  * @throws {HTTPException} 不正なパスは400、存在しないファイルが1件でもあれば404。
  */
-export const getFilesHandler: RouteHandler<typeof getFiles, AppEnv> = async (c) =>
-  c.json(await getSnapshot(c.env, c.req.valid('query').path), 200);
+export const getFilesHandler: RouteHandler<typeof getFiles, AppEnv> = async (c) => {
+  c.header('Cache-Control', 'no-store');
+  const snapshot = await getSnapshot(c.env, c.req.valid('query').path, { origin: new URL(c.req.url).origin });
+  return c.json(snapshot, 200);
+};

@@ -94,6 +94,22 @@ describe('v2 public contracts', () => {
     });
   });
 
+  it('documents shared tree/files caches and freshness in the public OpenAPI', async () => {
+    const document = openApiSchema.parse(await (await request('/v2/openapi.json')).json());
+    for (const [path, method] of [
+      ['/v2/tree', 'get'],
+      ['/v2/files', 'get'],
+      ['/v2/files', 'post'],
+    ] as const) {
+      expect(document).toHaveProperty(
+        ['paths', path, method, 'description'],
+        expect.stringMatching(
+          /同じデータセンター.*origin.*リポジトリ.*60秒.*1年間.*D1.*毎回.*no-store.*60秒.*同一コミット.*保証しない/,
+        ),
+      );
+    }
+  });
+
   it('documents the public files query body, response limits and failures', async () => {
     const document = openApiSchema.parse(await (await request('/v2/openapi.json')).json());
     expect(document).toMatchObject({
