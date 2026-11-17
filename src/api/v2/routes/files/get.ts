@@ -4,9 +4,9 @@
  */
 import { createRoute, type RouteHandler, z } from '@hono/zod-openapi';
 import type { AppEnv } from '@/types/env';
-import { dateTimeSchema, failure, jsonMiddleware, pathSchema, readFailures, shaSchema } from '../common';
+import { dateTimeSchema, failure, jsonMiddleware, readFailures, shaSchema } from '../common';
 import { getSnapshot } from '../tree/get';
-import { fileSchema } from './schemas';
+import { filePathsSchema, fileSchema } from './schemas';
 
 /** 要求順のファイル情報と、取得時のコミット・生成日時を持つ公開応答。 */
 export const filesSchema = z
@@ -23,12 +23,7 @@ export const filesQuerySchema = z.strictObject({
   path: z.preprocess(
     (value) => (typeof value === 'string' ? [value] : value),
 
-    z
-      .array(pathSchema)
-      .min(1)
-      .max(100)
-      .refine((values) => new Set(values).size === values.length)
-      .openapi({ uniqueItems: true }),
+    filePathsSchema.max(100),
   ),
 });
 

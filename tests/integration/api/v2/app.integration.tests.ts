@@ -66,6 +66,43 @@ describe('v2 public contracts', () => {
     });
   });
 
+  it('documents the public files query body, response limits and failures', async () => {
+    const document = openApiSchema.parse(await (await request('/v2/openapi.json')).json());
+    expect(document).toMatchObject({
+      paths: {
+        '/v2/files/query': {
+          post: {
+            operationId: 'queryFiles',
+            security: [],
+            description: expect.stringMatching(/10,000.*5 MiB.*8 MiB.*同一コミットSHA.*指定順.*404.*413.*422/),
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['paths'],
+                    properties: { paths: { minItems: 1, maxItems: 10000, uniqueItems: true } },
+                  },
+                },
+              },
+            },
+            responses: Object.fromEntries(
+              [200, 400, 404, 406, 413, 415, 422, 500, 502, 503].map((status) => [status, expect.anything()]),
+            ),
+          },
+        },
+      },
+      components: {
+        schemas: {
+          Files: { properties: { files: { maxItems: 100 } } },
+          QueriedFiles: { properties: { files: { minItems: 1, maxItems: 10000 } } },
+        },
+      },
+    });
+  });
+
   it.each(['/v2/health', '/v2/openapi.json', '/v2/docs'])('HEAD %s returns headers without a body', async (path) => {
     const response = await request(path, { method: 'HEAD' });
     expect(response.status).toBe(200);

@@ -56,6 +56,18 @@ CI の独立した各ジョブとデプロイも同じスクリプトを使う�
 本番反映は Release 公開時の GitHub Actions を使用します。手動で反映する場合も `Deploy to Cloudflare` Workflow を実行します。
 GitHub Actions は `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN`、`TARGET_GH_SECRET` のリポジトリシークレットを使用します。
 
+### v2のファイル情報一括取得
+
+`POST /v2/files/query` は、JSON本文の `paths` に重複のない1〜10,000件のパスを指定できます。認証不要の読み取り専用操作で、書き込み回数制限の対象外です。
+
+```json
+{ "paths": ["DCSWorld/example.lua", "UserMissions/example.lua"] }
+```
+
+応答は `GET /v2/files` と同じ `commitSha`・`generatedAt`・`files` 形式です。全ファイルのURLを同一コミットSHAに固定し、指定順で単一レスポンスに返します。ファイル内容自体は含みません。パス検証はGETと共通で、GETの100件上限は変更しません。
+
+本文は最大5 MiB、UTF-8 JSON応答は最大8 MiBです。パスは1件につきUTF-8で4096バイト以内です。重複・不正入力・10,000件超過は400、存在しないパスは404、本文超過は413、応答超過は422 `SNAPSHOT_LIMIT_EXCEEDED` とし、分割・部分結果は返しません。
+
 ### v2の匿名書き込みと共有回数制限
 
 `POST /v2/issues`、`PATCH /v2/issues/{number}`、`POST /v2/prs` はログイン不要です。Issueの編集は、作成者や作成経路・状態によらず、設定された対象リポジトリのタイトル・本文だけを変更します。PRをIssueとして編集することはできません。
