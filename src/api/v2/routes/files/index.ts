@@ -6,7 +6,7 @@ import type { OpenAPIHono } from '@hono/zod-openapi';
 import type { AppEnv } from '@/types/env';
 import { problem } from '../../app';
 import { getFiles, getFilesHandler } from './get';
-import { queryFiles, queryFilesHandler } from './query';
+import { queryFiles, queryFilesHandler } from './post';
 
 /** filesに属する操作のOpenAPI定義。 */
 export const fileRoutes = {
