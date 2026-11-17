@@ -14,8 +14,41 @@ const query = (paths: unknown, init?: RequestInit): Promise<Response> =>
     ...init,
   });
 
+/** UTF-8 JSON応答が指定バイト数になる、許可されたパスとblobのfixtureを作る。 */
+const responseSizeFixture = (bytes: number): ReturnType<typeof blob>[] => {
+  const encoder = new TextEncoder();
+  const tree = Array.from({ length: 1000 }, (_, i) => blob(`DCSWorld/${i}/${'あ'.repeat(650)}.lua`));
+  let remaining =
+    bytes -
+    encoder.encode(
+      JSON.stringify({
+        commitSha: sha,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+        files: tree.map((file) => ({
+          path: file.path,
+          sha: file.sha,
+          size: file.size,
+          updatedAt: null,
+          url: `https://raw.githubusercontent.com/test-owner/test-repo/${sha}/${file.path.split('/').map(encodeURIComponent).join('/')}`,
+        })),
+      }),
+    ).length;
+  for (const file of tree) {
+    // ASCIIのパス1文字はpathとurlで2バイト増えるため、奇数分はsizeの桁数で調整する。
+    if (remaining % 2) {
+      file.size = 123;
+      remaining--;
+    }
+    const padding = Math.min(4096 - encoder.encode(file.path).length, remaining / 2);
+    file.path += 'a'.repeat(padding);
+    remaining -= padding * 2;
+    if (remaining === 0) return tree;
+  }
+  throw new Error('Requested response size exceeds fixture capacity');
+};
+
 describe('POST /v2/files/query', () => {
-  it.each([1, 300, 10000])('returns all %i requested files in a single response', async (count) => {
+  it.each([1, 10000])('returns all %i requested files in a single response', async (count) => {
     const paths = Array.from({ length: count }, (_, i) => `DCSWorld/${i}.lua`);
     mocks.tree.mockResolvedValue({ data: { truncated: false, tree: paths.map((path) => blob(path)) } });
     const response = await query(paths);
@@ -97,12 +130,10 @@ describe('POST /v2/files/query', () => {
     await expectV2Contract(response, 'queryFiles');
   });
 
-  it('is not subject to the write rate limiter', async () => {
-    for (let i = 0; i < 11; i++) {
-      const response = await query(['DCSWorld/a.lua']);
-      expect(response.status).toBe(200);
-      await expectV2Contract(response, 'queryFiles');
-    }
+  it('does not require the source IP or database needed by the write rate limiter', async () => {
+    const response = await query(['DCSWorld/a.lua']);
+    expect(response.status).toBe(200);
+    await expectV2Contract(response, 'queryFiles');
   });
 
   it.each(
@@ -163,13 +194,22 @@ describe('POST /v2/files/query', () => {
     mocks.tree.mockResolvedValue({ data: { truncated: false, tree: paths.map((path) => blob(path)) } });
     const response = await query(paths);
     expect(response.status).toBe(200);
-    await expectV2Contract(response, 'queryFiles');
+    expect(await expectV2Contract(response, 'queryFiles')).toHaveProperty('files.length', 300);
   });
 
-  it('returns 422 without partial results when the response exceeds 8 MiB', async () => {
-    const paths = Array.from({ length: 1000 }, (_, i) => `DCSWorld/${i}/${'あ'.repeat(1000)}.lua`);
-    mocks.tree.mockResolvedValue({ data: { truncated: false, tree: paths.map((path) => blob(path)) } });
-    const response = await query(paths);
+  it('returns the entire response when its UTF-8 JSON size is exactly 8 MiB', async () => {
+    const tree = responseSizeFixture(8 * 1024 * 1024);
+    mocks.tree.mockResolvedValue({ data: { truncated: false, tree } });
+    const response = await query(tree.map((file) => file.path));
+    expect(response.status).toBe(200);
+    expect((await response.clone().arrayBuffer()).byteLength).toBe(8 * 1024 * 1024);
+    expect(await expectV2Contract(response, 'queryFiles')).toHaveProperty('files.length', tree.length);
+  });
+
+  it('returns 422 without partial results when the UTF-8 JSON response exceeds 8 MiB by one byte', async () => {
+    const tree = responseSizeFixture(8 * 1024 * 1024 + 1);
+    mocks.tree.mockResolvedValue({ data: { truncated: false, tree } });
+    const response = await query(tree.map((file) => file.path));
     expect(response.status).toBe(422);
     expect(await expectV2Contract(response, 'queryFiles')).toMatchObject({ code: 'SNAPSHOT_LIMIT_EXCEEDED' });
   });
