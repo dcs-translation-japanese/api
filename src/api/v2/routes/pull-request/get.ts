@@ -11,6 +11,7 @@ import { githubPrSchema, pullRequestSchema, toPr } from './schemas';
 /** 認証不要のPR詳細操作のOpenAPI定義。 */
 export const getPullRequest = createRoute({
   operationId: 'getPullRequest',
+  tags: ['pr'],
   method: 'get',
   path: '/prs/{number}',
   security: [],

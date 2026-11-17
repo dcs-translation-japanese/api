@@ -30,6 +30,7 @@ export const filesQuerySchema = z.strictObject({
 /** 認証不要のファイル情報取得操作のOpenAPI定義。 */
 export const getFiles = createRoute({
   operationId: 'getFiles',
+  tags: ['files'],
   method: 'get',
   path: '/files',
 

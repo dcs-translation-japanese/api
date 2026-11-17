@@ -42,6 +42,18 @@ describe('v2 public contracts', () => {
     if (operation === 'getDocs') expect(body).toContain('/v2/openapi.json');
   });
 
+  it('groups Swagger operations by resource in the requested order', async () => {
+    const document: unknown = await (await request('/v2/openapi.json')).json();
+    expect(document).toMatchObject({
+      tags: ['health', 'tree', 'files', 'issue', 'pr', 'tree-metadata', 'docs', 'openapi.json'].map((name) => ({ name })),
+    });
+    for (const route of Object.values(routes)) {
+      const resource = route.path.split('/')[1];
+      const tag = resource === 'issues' ? 'issue' : resource === 'prs' ? 'pr' : resource;
+      expect(document).toMatchObject({ paths: { [`/v2${route.path}`]: { [route.method]: { tags: [tag] } } } });
+    }
+  });
+
   /** treeの取得完了条件・キャッシュ・件数とサイズ上限が、実際の公開仕様に含まれることを確認する。 */
   it('documents tree pagination, caching, limits and failures in the public OpenAPI', async () => {
     const document = openApiSchema.parse(await (await request('/v2/openapi.json')).json());

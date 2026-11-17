@@ -38,6 +38,7 @@ export const metadataResultSchema = z
  */
 export const upsertTreeMetadata = createRoute({
   operationId: 'upsertTreeMetadata',
+  tags: ['tree-metadata'],
   method: 'patch',
   path: '/tree-metadata',
   security: [{ githubActionsOidc: [] }],

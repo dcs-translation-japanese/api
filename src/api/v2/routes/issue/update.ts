@@ -28,6 +28,7 @@ export const issueUpdateSchema = z
  */
 export const updateIssue = createRoute({
   operationId: 'updateIssue',
+  tags: ['issue'],
   method: 'patch',
   path: '/issues/{number}',
   security: [],

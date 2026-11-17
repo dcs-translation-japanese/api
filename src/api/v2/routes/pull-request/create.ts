@@ -88,6 +88,7 @@ export const pullRequestCreationSchema = z
  */
 export const createPullRequest = createRoute({
   operationId: 'createPullRequest',
+  tags: ['pr'],
   method: 'post',
   path: '/prs',
   security: [],

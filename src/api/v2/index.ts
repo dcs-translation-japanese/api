@@ -32,6 +32,7 @@ app.openapi(routes.getOpenApi, (c) =>
           description: 'DCS日本語翻訳のIssue・PR・ファイル情報・更新日時を扱うAPI。',
         },
         servers: [{ url: 'https://api.dcs-translation-japanese.workers.dev' }],
+        tags: ['health', 'tree', 'files', 'issue', 'pr', 'tree-metadata', 'docs', 'openapi.json'].map((name) => ({ name })),
       }),
     ),
     200,
