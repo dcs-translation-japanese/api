@@ -7,7 +7,7 @@ vi.mock('@/services/treePathUpdatedAtService', async () => (await import('../../
 
 /** 認証・送信元IPなしで、ファイルパスをJSON本文に指定する。 */
 const query = (paths: unknown, init?: RequestInit): Promise<Response> =>
-  request('/files/query', {
+  request('/files', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ paths }),
@@ -47,7 +47,7 @@ const responseSizeFixture = (bytes: number): ReturnType<typeof blob>[] => {
   throw new Error('Requested response size exceeds fixture capacity');
 };
 
-describe('POST /v2/files/query', () => {
+describe('POST /v2/files', () => {
   it.each([1, 10000])('returns all %i requested files in a single response', async (count) => {
     const paths = Array.from({ length: count }, (_, i) => `DCSWorld/${i}.lua`);
     mocks.tree.mockResolvedValue({ data: { truncated: false, tree: paths.map((path) => blob(path)) } });
@@ -168,12 +168,12 @@ describe('POST /v2/files/query', () => {
   });
 
   it.each([
-    ['/files/query?unknown=1', JSON.stringify({ paths: ['DCSWorld/a.lua'] }), 'application/json', 400],
-    ['/files/query', JSON.stringify({ paths: ['DCSWorld/a.lua'], unknown: true }), 'application/json', 400],
-    ['/files/query', '{', 'application/json', 400],
-    ['/files/query', '', 'application/json', 400],
-    ['/files/query', '{}', 'text/plain', 415],
-    ['/files/query', '{}', '', 415],
+    ['/files?unknown=1', JSON.stringify({ paths: ['DCSWorld/a.lua'] }), 'application/json', 400],
+    ['/files', JSON.stringify({ paths: ['DCSWorld/a.lua'], unknown: true }), 'application/json', 400],
+    ['/files', '{', 'application/json', 400],
+    ['/files', '', 'application/json', 400],
+    ['/files', '{}', 'text/plain', 415],
+    ['/files', '{}', '', 415],
   ])('rejects invalid bodies, queries or media types (case %#)', async (path, body, mediaType, status) => {
     const response = await request(path, { method: 'POST', headers: { 'Content-Type': mediaType }, body });
     expect(response.status).toBe(status);
@@ -232,11 +232,11 @@ describe('POST /v2/files/query', () => {
     await expectV2Contract(response, 'queryFiles');
   });
 
-  it.each(['GET', 'HEAD', 'PUT', 'PATCH', 'DELETE'])('rejects the unsupported %s method', async (method) => {
-    const response = await request('/files/query', { method });
+  it.each(['PUT', 'PATCH', 'DELETE'])('rejects the unsupported %s method', async (method) => {
+    const response = await request('/files', { method });
     expect(response.status).toBe(405);
-    expect(response.headers.get('Allow')).toBe('POST');
-    if (method !== 'HEAD') await expectV2Contract(response, 'queryFiles');
+    expect(response.headers.get('Allow')).toBe('GET, HEAD, POST');
+    await expectV2Contract(response, 'queryFiles');
   });
 
   it('returns a contract-valid error on upstream failure without leaking details', async () => {

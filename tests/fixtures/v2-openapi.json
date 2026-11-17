@@ -538,9 +538,7 @@
             }
           }
         ]
-      }
-    },
-    "/v2/files/query": {
+      },
       "post": {
         "operationId": "queryFiles",
         "tags": [

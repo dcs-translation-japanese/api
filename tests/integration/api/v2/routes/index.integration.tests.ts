@@ -37,7 +37,11 @@ describe('v2 read route contracts', () => {
     const unsupported = await request(path, { method: 'DELETE' });
     expect(unsupported.status).toBe(405);
     const allow =
-      path === '/issues' || path === '/prs' ? 'GET, HEAD, POST' : path === '/issues/1' ? 'GET, HEAD, PATCH' : 'GET, HEAD';
+      path === '/issues' || path === '/prs' || operation === 'getFiles'
+        ? 'GET, HEAD, POST'
+        : path === '/issues/1'
+          ? 'GET, HEAD, PATCH'
+          : 'GET, HEAD';
     expect(unsupported.headers.get('Allow')).toBe(allow);
     await expectV2Contract(unsupported, operation);
   });

@@ -22,7 +22,7 @@ const queriedFilesSchema = z
 export const queryFiles = createRoute({
   operationId: 'queryFiles',
   method: 'post',
-  path: '/files/query',
+  path: '/files',
   description:
     'JSON本文のpathsに重複のない1〜10,000件を指定する。' +
     '本文は最大5 MiB、UTF-8 JSON応答は最大8 MiB。' +

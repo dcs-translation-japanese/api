@@ -70,7 +70,7 @@ describe('v2 public contracts', () => {
     const document = openApiSchema.parse(await (await request('/v2/openapi.json')).json());
     expect(document).toMatchObject({
       paths: {
-        '/v2/files/query': {
+        '/v2/files': {
           post: {
             operationId: 'queryFiles',
             security: [],

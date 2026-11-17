@@ -58,7 +58,7 @@ GitHub Actions は `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN`、`TARGET_GH
 
 ### v2のファイル情報一括取得
 
-`POST /v2/files/query` は、JSON本文の `paths` に重複のない1〜10,000件のパスを指定できます。認証不要の読み取り専用操作で、書き込み回数制限の対象外です。
+`POST /v2/files` は、JSON本文の `paths` に重複のない1〜10,000件のパスを指定できます。認証不要の読み取り専用操作で、書き込み回数制限の対象外です。
 
 ```json
 { "paths": ["DCSWorld/example.lua", "UserMissions/example.lua"] }

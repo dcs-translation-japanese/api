@@ -22,6 +22,5 @@ export const fileRoutes = {
 export const registerFileRoutes = (app: OpenAPIHono<AppEnv>): void => {
   app.openapi(getFiles, getFilesHandler);
   app.openapi(queryFiles, queryFilesHandler);
-  app.all('/files', (c) => problem(c, 405, { Allow: 'GET, HEAD' }));
-  app.all('/files/query', (c) => problem(c, 405, { Allow: 'POST' }));
+  app.all('/files', (c) => problem(c, 405, { Allow: 'GET, HEAD, POST' }));
 };
