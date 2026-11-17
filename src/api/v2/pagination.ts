@@ -44,24 +44,37 @@ export const paginate = async <T extends Boundary>(
   const secret = `${env.TARGET_GH_OWNER}/${env.TARGET_GH_REPO}\n${getRequiredEnvString('TARGET_GH_APP_PRIVATE_KEY', env.TARGET_GH_APP_PRIVATE_KEY)}`;
   const boundary = query.cursor ? await readCursor(query.cursor, conditions, secret) : undefined;
   const ctx = await getGitHubContext(env);
+  const load = (page: number): Promise<PageData<T>> =>
+    githubRequest(() =>
+      loadPage(ctx, {
+        owner: ctx.owner,
+        repo: ctx.repo,
+        state: conditions.state,
+        per_page: 100,
+        page,
+        sort: 'created',
+        direction: 'desc',
+      }),
+    );
+  let page = boundary?.page ?? 1;
+  let pending: PageData<T> | undefined = await load(page);
+  // ページ内に境界より新しい日時があれば、それ以前のページも境界より新しい。
+  // 空ページ・状態変更による前ずれ・ページをまたぐ同日時では、安全な位置まで戻る。
+  while (boundary && page > 1 && !pending.dates.some((date) => date > boundary.createdAt)) {
+    pending = await load(--page);
+  }
   const items: T[] = [];
-  for (let page = 1; ; page++) {
-    const params: ListParameters = {
-      owner: ctx.owner,
-      repo: ctx.repo,
-      state: conditions.state,
-      per_page: 100,
-      page,
-      sort: 'created',
-      direction: 'desc',
-    };
-    const data = await githubRequest(() => loadPage(ctx, params));
+  let nextPage: number | undefined;
+  for (; ; page++) {
+    const data = pending ?? (await load(page));
+    pending = undefined;
     for (const item of data.items) {
       if ((!boundary || compare(item, boundary) > 0) && !items.some((entry) => entry.number === item.number)) items.push(item);
     }
     items.sort(compare);
     items.splice(conditions.limit + 1);
     const cutoff = items[conditions.limit - 1];
+    if (cutoff && nextPage === undefined) nextPage = page;
     // 同一作成日時がGitHubのページをまたぐ場合は、番号順を確定できるまで読む。
     if (data.count < 100 || (items.length > conditions.limit && cutoff && data.dates.some((date) => date < cutoff.createdAt)))
       break;
@@ -70,6 +83,9 @@ export const paginate = async <T extends Boundary>(
   const last = selected.at(-1);
   return {
     items: selected,
-    page: { nextCursor: items.length > conditions.limit && last ? await issueCursor(conditions, last, secret) : null },
+    page: {
+      nextCursor:
+        items.length > conditions.limit && last ? await issueCursor(conditions, { ...last, page: nextPage }, secret) : null,
+    },
   };
 };
