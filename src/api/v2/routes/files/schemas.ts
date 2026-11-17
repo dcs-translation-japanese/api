@@ -17,3 +17,12 @@ export const fileSchema = z
     updatedAt: dateTimeSchema.nullable(),
   })
   .openapi('File');
+
+/** 要求順のファイル情報と、取得時のコミット・生成日時を持つ公開応答。 */
+export const filesSchema = z
+  .strictObject({
+    commitSha: shaSchema,
+    generatedAt: dateTimeSchema,
+    files: z.array(fileSchema).min(1).max(100),
+  })
+  .openapi('Files');

@@ -4,8 +4,8 @@
  */
 import { z } from '@hono/zod-openapi';
 import type { GitHubContext } from '@/services/githubService';
-import { githubRequest } from '../../githubAdapter';
-import { shaSchema } from '../common';
+import { githubRequest } from './githubAdapter';
+import { shaSchema } from './routes/common';
 
 /** GitHubの完全なツリー。公開応答への変換前に検証する。 */
 const treeSchema = z.object({
@@ -63,7 +63,7 @@ const cached = async <T>(key: string, schema: z.ZodType<T>, seconds: number, loa
 
 /**
  * 最新コミットは60秒、SHA固定のGitHubツリーは1年間、同じデータセンター内で共有する。
- * options省略時はキャッシュを使わず、filesの従来の取得方式を維持する。
+ * tree・filesで同じorigin・リポジトリ・ブランチのキャッシュを利用する。
  * @param ctx GitHubクライアントと対象リポジトリ・既定ブランチの情報。
  * @param options キャッシュキー用originと、継続取得で固定する任意のコミットSHA。
  * commitSha省略時は既定ブランチから解決し、指定時は最新ブランチを確認しない。
@@ -72,10 +72,10 @@ const cached = async <T>(key: string, schema: z.ZodType<T>, seconds: number, loa
  */
 export const loadTree = async (
   ctx: GitHubContext,
-  options?: { origin: string; commitSha?: string },
+  options: { origin: string; commitSha?: string },
 ): Promise<{ commitSha: string; tree: z.infer<typeof treeSchema> }> => {
   const { octokit, owner, repo, defaultBranch } = ctx;
-  const prefix = options ? `${options.origin}/__tree-cache/v1/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/` : '';
+  const prefix = `${options.origin}/__tree-cache/v1/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/`;
   const loadHead = () =>
     githubRequest(
       async () =>
@@ -84,14 +84,11 @@ export const loadTree = async (
           .parse((await octokit.rest.repos.getBranch({ owner, repo, branch: defaultBranch })).data).commit.sha,
     );
   const commitSha =
-    options?.commitSha ??
-    (options
-      ? await cached(`${prefix}branch/${encodeURIComponent(defaultBranch)}`, shaSchema, 60, loadHead)
-      : await loadHead());
+    options.commitSha ?? (await cached(`${prefix}branch/${encodeURIComponent(defaultBranch)}`, shaSchema, 60, loadHead));
   const load = () =>
     githubRequest(async () =>
       treeSchema.parse((await octokit.rest.git.getTree({ owner, repo, tree_sha: commitSha, recursive: 'true' })).data),
     );
-  const tree = options ? await cached(`${prefix}tree/${commitSha}`, treeSchema, 31536000, load) : await load();
+  const tree = await cached(`${prefix}tree/${commitSha}`, treeSchema, 31536000, load);
   return { commitSha, tree };
 };
