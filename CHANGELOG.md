@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.0](https://github.com/dcs-translation-japanese/api/compare/v2.0.0...v2.1.0) (2026-11-17)
+
+
+### Features
+
+* share GitHub tree cache across tree and files ([#194](https://github.com/dcs-translation-japanese/api/issues/194)) ([#195](https://github.com/dcs-translation-japanese/api/issues/195)) ([4682fc3](https://github.com/dcs-translation-japanese/api/commit/4682fc3d08b7762e4a1fa52e56c0c74b1ffe7711))
+* support bulk file queries with POST /v2/files ([#192](https://github.com/dcs-translation-japanese/api/issues/192)) ([32c51e3](https://github.com/dcs-translation-japanese/api/commit/32c51e3bc93f68cf5eeb04c809479386da94c4b2))
+
+
+### Performance Improvements
+
+* avoid rescanning v2 list pages ([#198](https://github.com/dcs-translation-japanese/api/issues/198)) ([#199](https://github.com/dcs-translation-japanese/api/issues/199)) ([c3c5473](https://github.com/dcs-translation-japanese/api/commit/c3c54739fad9d7aeef4dfa2b5252eed7dc0486d7))
+
 ## [2.0.0](https://github.com/dcs-translation-japanese/api/compare/v1.5.5...v2.0.0) (2026-11-07)
 
 
