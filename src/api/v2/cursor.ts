@@ -13,14 +13,15 @@ const cursorSchema = z.strictObject({
   limit: z.number().int().min(1).max(100),
   createdAt: dateTimeSchema,
   number: numberSchema,
+  page: z.number().int().positive().optional(),
   issuedAt: z.number().int().nonnegative(),
 });
 /** 検証済みcursorのペイロード。 */
 type Cursor = z.infer<typeof cursorSchema>;
 /** cursorの再利用時にも一致が必要な一覧取得条件。 */
 export type PageConditions = Pick<Cursor, 'resource' | 'state' | 'limit'>;
-/** 次ページから除外する最後の項目の作成日時と番号。 */
-export type Boundary = Pick<Cursor, 'createdAt' | 'number'>;
+/** 次ページから除外する作成日時・番号と、再検証が必要なGitHubページ位置のヒント。 */
+export type Boundary = Pick<Cursor, 'createdAt' | 'number' | 'page'>;
 /** cursorのJSONと署名対象文字列をUTF-8へ変換する。 */
 const encoder = new TextEncoder();
 /**
@@ -64,7 +65,10 @@ const signingKey = (secret: string): Promise<CryptoKey> =>
  * @returns 発行時刻を含む、署名付きbase64url形式のcursor。
  */
 export const issueCursor = (conditions: PageConditions, boundary: Boundary, secret: string): Promise<string> =>
-  signCursor({ ...conditions, createdAt: boundary.createdAt, number: boundary.number, issuedAt: Date.now() }, secret);
+  signCursor(
+    { ...conditions, createdAt: boundary.createdAt, number: boundary.number, page: boundary.page, issuedAt: Date.now() },
+    secret,
+  );
 
 /**
  * 一覧種別ごとのペイロードを同じHMAC方式で署名する。
@@ -114,7 +118,7 @@ export const readCursor = async (value: string, conditions: PageConditions, secr
       Date.now() - cursor.issuedAt >= 86400000
     )
       throw new Error('Invalid cursor conditions');
-    return { createdAt: cursor.createdAt, number: cursor.number };
+    return { createdAt: cursor.createdAt, number: cursor.number, page: cursor.page };
   } catch {
     throw new ProblemException(400, 'INVALID_CURSOR');
   }
