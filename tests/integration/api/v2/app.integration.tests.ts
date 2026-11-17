@@ -37,7 +37,11 @@ describe('v2 public contracts', () => {
     const body = await expectV2Contract(response, operation);
     if (operation === 'getOpenApi') {
       expect(body).toMatchObject({ openapi: '3.1.0', info: specification.info });
-      expect(Object.keys(openApiSchema.parse(body).paths).sort()).toEqual(Object.keys(specification.paths).sort());
+      expect(Object.keys(openApiSchema.parse(body).paths).sort()).toEqual(
+        Object.keys(specification.paths)
+          .filter((path) => path !== '/v2/docs' && path !== '/v2/openapi.json')
+          .sort(),
+      );
     }
     if (operation === 'getDocs') expect(body).toContain('/v2/openapi.json');
   });
@@ -45,11 +49,23 @@ describe('v2 public contracts', () => {
   it('groups Swagger operations by resource in the requested order', async () => {
     const document: unknown = await (await request('/v2/openapi.json')).json();
     expect(document).toMatchObject({
-      tags: ['health', 'tree', 'files', 'issue', 'pr', 'tree-metadata', 'docs', 'openapi.json'].map((name) => ({ name })),
+      tags: ['Health', 'Tree', 'Files', 'Issue', 'PR', 'Tree Metadata'].map((name) => ({ name })),
     });
+    const tags: Record<string, string> = {
+      health: 'Health',
+      tree: 'Tree',
+      files: 'Files',
+      issues: 'Issue',
+      prs: 'PR',
+      'tree-metadata': 'Tree Metadata',
+    };
     for (const route of Object.values(routes)) {
-      const resource = route.path.split('/')[1];
-      const tag = resource === 'issues' ? 'issue' : resource === 'prs' ? 'pr' : resource;
+      if (route.path === '/docs' || route.path === '/openapi.json') {
+        expect(document).not.toHaveProperty(['paths', `/v2${route.path}`]);
+        continue;
+      }
+      const resource = route.path.split('/')[1] ?? '';
+      const tag = tags[resource];
       expect(document).toMatchObject({ paths: { [`/v2${route.path}`]: { [route.method]: { tags: [tag] } } } });
     }
   });
@@ -125,6 +141,7 @@ describe('v2 public contracts', () => {
   it('keeps all documented operations, success statuses, media types and security declarations', async () => {
     const document: unknown = await (await request('/v2/openapi.json')).json();
     for (const [path, item] of Object.entries(specification.paths)) {
+      if (path === '/v2/docs' || path === '/v2/openapi.json') continue;
       for (const [method, operation] of Object.entries(item)) {
         if (!operation || typeof operation !== 'object' || !('operationId' in operation)) continue;
         const responses = Object.fromEntries(

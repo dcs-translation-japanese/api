@@ -40,7 +40,7 @@ export const issueCreateSchema = z
  */
 export const createIssue = createRoute({
   operationId: 'createIssue',
-  tags: ['issue'],
+  tags: ['Issue'],
   method: 'post',
   path: '/issues',
   security: [],

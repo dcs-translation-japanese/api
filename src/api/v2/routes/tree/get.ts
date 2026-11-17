@@ -51,7 +51,7 @@ const treeQuerySchema = z.strictObject({
 /** 認証不要の、同一コミットに固定したツリーページ。 */
 export const getTree = createRoute({
   operationId: 'getTree',
-  tags: ['tree'],
+  tags: ['Tree'],
   method: 'get',
   path: '/tree',
   description:

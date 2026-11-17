@@ -18,7 +18,7 @@ export const openApiSchema = z.looseObject({
 
 export const getOpenApi = createRoute({
   operationId: 'getOpenApi',
-  tags: ['openapi.json'],
+  hide: true,
   method: 'get',
   path: '/openapi.json',
   security: [],

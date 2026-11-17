@@ -21,7 +21,7 @@ const queriedFilesSchema = z
 /** 認証・書き込み制限を要求しないファイル情報検索の公開契約。 */
 export const queryFiles = createRoute({
   operationId: 'queryFiles',
-  tags: ['files'],
+  tags: ['Files'],
   method: 'post',
   path: '/files',
   description:
