@@ -38,10 +38,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.7",
-    "@cloudflare/vite-plugin": "2.0.0-beta.v.17",
+    "@cloudflare/vite-plugin": "2.0.0-rc.3",
     "@cloudflare/vitest-plugin": "1.8.2",
     "@types/node": "^26.6.6",
-    "cf": "1.0.0-beta.32",
+    "cf": "1.0.0-rc.2",
     "license-checker-rseidelsohn": "^5.0.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
